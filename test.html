@@ -1,0 +1,195 @@
+<template>
+	<view class="test-container">
+		<view class="progress-bar">
+			<view class="progress-inner" :style="{width: (currentQuestionIndex / questions.length) * 100 + '%'}"></view>
+		</view>
+
+		<view class="question-card">
+			<view class="question-text">{{ currentQuestion.text }}</view>
+			<view class="options">
+				<view 
+					v-for="(option, index) in currentQuestion.options" 
+					:key="index" 
+					class="option" 
+					@click="selectOption(option)"
+				>
+					{{ option.text }}
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				currentQuestionIndex: 0, // 当前题目的索引
+				answers: [], // 存储用户的选择
+				questions: [ // 先模拟静态数据，后续可改为从云函数获取
+					{
+						id: 1,
+						text: "您容易疲劳吗？",
+						options: [
+							{ text: "总是，感觉浑身没劲", score: {"气虚质": 2} },
+							{ text: "经常，尤其是下午", score: {"气虚质": 1} },
+							{ text: "偶尔", score: {} },
+							{ text: "精力充沛，从不觉得累", score: {"平和质": 1} }
+						]
+					},
+					{
+						id: 2,
+						text: "您手脚心容易发热或心烦吗？",
+						options: [
+							{ text: "经常，晚上尤其明显", score: {"阴虚质": 2} },
+							{ text: "偶尔会", score: {"阴虚质": 1} },
+							{ text: "几乎不会", score: {} },
+							{ text: "我手脚容易冰凉", score: {"阳虚质": 1} }
+						]
+					},
+					{
+						id: 3,
+						text: "您的面部或头发是否容易出油？",
+						options: [
+							{ text: "是的，油光满面", score: {"湿热质": 2} },
+							{ text: "额头和鼻子比较油", score: {"湿热质": 1} },
+							{ text: "不怎么出油", score: {} },
+							{ text: "皮肤很干", score: {"阳虚质": 1} }
+						]
+					},
+					{
+						id: 4,
+						text: "您感觉喉咙里经常有痰吗？",
+						options: [
+							{ text: "是的，总想清嗓子", score: {"痰湿质": 2} },
+							{ text: "早上起来的时候有", score: {"痰湿质": 1} },
+							{ text: "不几乎没有", score: {} }
+						]
+					},
+					{
+						id: 5,
+						text: "您的情绪状态更接近以下哪种？",
+						options: [
+							{ text: "容易情绪低落或烦躁", score: {"气郁质": 2} },
+							{ text: "比较平静，偶尔有波动", score: {} },
+							{ text: "天生乐观派", score: {"平和质": 1} }
+						]
+					},
+					{
+						id: 6,
+						text: "您是否容易过敏（如花粉、食物、宠物）？",
+						options: [
+							{ text: "是的，是“过敏星人”", score: {"特禀质": 2} },
+							{ text: "偶尔会有", score: {"特禀质": 1} },
+							{ text: "几乎从不过敏", score: {} }
+						]
+					},
+					{
+						id: 7,
+						text: "您更偏爱哪种食物？",
+						options: [
+							{ text: "热乎乎的汤羹", score: {"特禀质": 1} },
+							{ text: "清凉爽口的饮料", score: {"阴虚质": 1} },
+							{ text: "麻辣重口味的", score: {"湿热质": 1} },
+							{ text: "没有特别偏好", score: {} }
+						]
+					},
+					{
+						id: 8,
+						text: "您的睡眠情况如何？",
+						options: [
+							{ text: "睡得晚，但睡着了就很沉", score: {"阴虚": 1} },
+							{ text: "清凉爽口的饮料", score: {"血瘀质": 1} },
+							{ text: "入睡困难，思绪纷飞", score: {"气郁质": 1} },
+							{ text: "没倒头就睡，一觉到天亮", score: {"平和质": 1} }
+						]
+					},
+					{
+						id: 9,
+						text: "您观察自己的舌苔，更接近哪种？",
+						options: [
+							{ text: "很薄很白", score: {} },
+							{ text: "很厚很白", score: {"痰湿质": 1} },
+							{ text: "又黄又厚", score: {"湿热质": 1} },
+							{ text: "很少舌苔，发红", score: {"阴虚质": 1} },
+						]
+					}
+				]
+			};
+		},
+		computed: {
+			currentQuestion() {
+				return this.questions[this.currentQuestionIndex];
+			}
+		},
+		methods: {
+			selectOption(option) {
+				// 1. 记录答案
+				this.answers.push({
+					qid: this.currentQuestion.id,
+					selectedOption: option
+				});
+
+				// 2. 判断是否是最后一题
+				if (this.currentQuestionIndex < this.questions.length - 1) {
+					// 不是最后一题，跳转到下一题
+					this.currentQuestionIndex++;
+				} else {
+					// 是最后一题，跳转到结果页，并传递答案数据
+					uni.navigateTo({
+						url: '/pages/result/result?answers=' + encodeURIComponent(JSON.stringify(this.answers))
+					});
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+.test-container {
+	padding: 20px;
+
+	.progress-bar {
+		height: 6px;
+		background-color: #eee;
+		border-radius: 3px;
+		margin-bottom: 40px;
+
+		.progress-inner {
+			height: 100%;
+			background-color: #8BC34A;
+			border-radius: 3px;
+			transition: width 0.3s ease;
+		}
+	}
+
+	.question-card {
+		background-color: #fff;
+		border-radius: 15px;
+		padding: 30px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+		.question-text {
+			font-size: 18px;
+			font-weight: bold;
+			margin-bottom: 30px;
+			text-align: center;
+		}
+
+		.options {
+			.option {
+				padding: 15px;
+				margin-bottom: 15px;
+				border: 1px solid #e0e0e0;
+				border-radius: 10px;
+				text-align: center;
+				transition: all 0.2s;
+
+				&:active {
+					background-color: #f5f5f5;
+				}
+			}
+		}
+	}
+}
+</style>
